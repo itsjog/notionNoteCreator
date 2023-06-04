@@ -131,7 +131,7 @@ class Controller {
         return pageContent;
     }
 
-    async createPage(file) {
+    async createPage(nombrePagina, file) {
         const content = this.buildContentPage(file);
         const pageContent = this.buildContentPage(file);
         
@@ -146,7 +146,7 @@ class Controller {
                     "title": [
                         {
                             "text": {
-                                "content": "Hello world!"
+                                "content": nombrePagina
                             }
                         }
                     ]
@@ -157,9 +157,26 @@ class Controller {
 
 }
 
+function manageArguments(argumentsList) {
+    if (argumentsList.length<4) {
+        throw new Error("You should give me page name and file name in arguments");
+    }
+    return {
+        "pageName": argumentsList[2],
+        "fileName": argumentsList[3],
+    };
+}
+
 
 function main() {
+    let argumentsList;
+    try{
+        argumentsList = manageArguments(process.argv);
+    } catch (err) {
+        console.log('Arguments missing');
+        process.exit(1);
+    }
     const controller = new Controller(process.env.NOTION_DATABASE_ID, process.env.NOTION_KEY);
-    console.log(controller.createPage('./src/md/note1.md'));
+    console.log(controller.createPage(argumentsList['pageName'], argumentsList['fileName']));
 }
 main();
