@@ -17,11 +17,66 @@ class Controller {
         const content = markdown.parse(fs.readFileSync(file,'utf-8'));
         console.log(content);
         const pageContent = [];
+        let blockType;
         for (let i=0; i<= content.length; i++) {
             const token = content[i];
             switch (token?.['type']) {
+                case 'bullet_list_open':
+                    blockType = "bullet";
+                    break;
+
+                case 'bullet_list_close':
+                    blockType = "";
+                    break;
+
                 case 'heading_open':
-                    pageContent.push(
+                    blockType = 'heading';
+                    break;
+                case 'heading_close':
+                    blockType = '';
+                    break;
+
+                case 'inline':
+                    if (blockType == "bullet") {
+                        pageContent.push(
+                            {
+                                "object":"block",
+                                "type": "bulleted_list_item",
+                                "bulleted_list_item": {
+                                    "rich_text": [
+                                        {
+                                            "type": "text",
+                                            "text": {
+                                                "content": content[i]['content'],
+                                                "link": null
+                                            },
+                                            "plain_text": content[i]['content'],
+                                        }
+                                    ],
+                                }
+                            },
+                        );
+                    } else if (blockType == "ordered") {
+                        pageContent.push(
+                            {
+                                "object":"block",
+                                "type": "numbered_list_item",
+                                "numbered_list_item": {
+                                    "rich_text": [
+                                        {
+                                            "type": "text",
+                                            "text": {
+                                                "content": content[i]['content'],
+                                                "link": null
+                                            },
+                                            "plain_text": content[i]['content'],
+                                        }
+                                    ],
+                                }
+                            },
+                        );
+                    } else if (blockType == "heading") {
+                      pageContent.push(
                         {
                             "object":"block",
                             "type": "heading_1",
@@ -30,35 +85,43 @@ class Controller {
                                     {
                                         "type": "text",
                                         "text": {
-                                            "content": content[i+1]['content'],
+                                            "content": content[i]['content'],
                                             "link": null
                                         },
-                                        "plain_text": content[i+1]['content'],
+                                        "plain_text": content[i]['content'],
                                     }
                                 ],
                             }
                         },
-                    )
+                        )
+                    }else {
+                            pageContent.push(
+                                {
+                                    "object":"block",
+                                    "type": "paragraph",
+                                    "paragraph": {
+                                        "rich_text": [
+                                            {
+                                                "type": "text",
+                                                "text": {
+                                                    "content": content[i]['content'],
+                                                    "link": null
+                                                },
+                                            }
+                                        ],
+                                    }
+                                },
+                            );
+                        }
+                  
+
+                case 'ordered_list_open':
+                    blockType = 'ordered';
                     break;
-                case 'paragraph_open':
-                    pageContent.push(
-                        {
-                            "object":"block",
-                            "type": "bulleted_list_item",
-                            "bulleted_list_item": {
-                                "rich_text": [
-                                    {
-                                        "type": "text",
-                                        "text": {
-                                            "content": content[i+1]['content'],
-                                            "link": null
-                                        },
-                                        "plain_text": content[i+1]['content'],
-                                    }
-                                ],
-                            }
-                        },
-                    )
+
+                case 'ordererd_list_close':
+                    blockType = "";
+                    break;
 
                 default:
                     
